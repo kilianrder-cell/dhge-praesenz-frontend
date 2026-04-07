@@ -1,0 +1,6 @@
+{
+  "deploy": {
+    "startCommand": "npx serve dist",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
