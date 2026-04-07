@@ -125,29 +125,31 @@ export default function DozentDashboard() {
 
         {/* ── Sidebar: Wochenkalender ── */}
         <div style={{ width: '300px', minWidth: '300px', background: 'white', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {/* ICS Import */}
-          <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#006633', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              📅 Kalender importieren
-            </div>
-            <input
-              style={{ width: '100%', padding: '7px 10px', border: '1px solid #ddd', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box', marginBottom: '6px' }}
-              placeholder="ICS-Link aus DHGE Selfservice"
-              value={icsUrl}
-              onChange={e => setIcsUrl(e.target.value)}
-            />
-            <button
-              onClick={icsImport}
-              style={{ width: '100%', padding: '7px', background: '#006633', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
-            >
-              Importieren
-            </button>
-            {icsStatus && (
-              <div style={{ fontSize: '11px', marginTop: '6px', color: icsStatus.startsWith('✓') ? '#16a34a' : '#dc2626' }}>
-                {icsStatus}
-              </div>
-            )}
-          </div>
+          {/* ICS-Import */}
+        <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: '#006633', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            📅 Kalender importieren
+        </div>
+         <label style={{
+          display: 'block', width: '100%', padding: '7px',
+          background: '#006633', color: 'white', border: 'none',
+          borderRadius: '6px', fontSize: '12px', fontWeight: 600,
+          cursor: 'pointer', textAlign: 'center', boxSizing: 'border-box',
+        }}>
+        ICS-Datei hochladen
+          <input
+            type="file"
+            accept=".ics"
+            style={{ display: 'none' }}
+            onChange={handleIcsDatei}
+          />
+        </label>
+        {icsStatus && (
+      <div style={{ fontSize: '11px', marginTop: '6px', color: icsStatus.startsWith('✓') ? '#16a34a' : '#dc2626' }}>
+       {icsStatus}
+      </div>
+  )}
+</div>
 
           {/* Wochennavigation */}
           <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
