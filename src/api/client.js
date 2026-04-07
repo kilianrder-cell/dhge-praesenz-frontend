@@ -18,13 +18,20 @@ client.interceptors.request.use((config) => {
 });
 
 // Bei 401 automatisch ausloggen
+// src/api/client.js
 client.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/';
+      // Nur ausloggen wenn Token wirklich ungültig ist
+      // NICHT bei Fehlern die nichts mit Auth zu tun haben
+      const url = err.config?.url || '';
+      const istAuthFehler = !url.includes('mock-auth');
+      if (istAuthFehler) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+      }
     }
     return Promise.reject(err);
   }
