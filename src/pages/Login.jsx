@@ -4,13 +4,22 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../App';
 import client from '../api/client';
 
+const ROLLE_STANDARD = {
+  dozent: 'dozent-001',
+  studierender: 'student-001',
+  verwaltung: 'verwaltung-001',
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
   const rolle = location.state?.rolle || 'studierender';
 
-  const [form, setForm] = useState({ vorname: '', nachname: '', email: '' });
+  const [form, setForm] = useState({
+    username: ROLLE_STANDARD[rolle] || '',
+    passwort: '',
+  });
   const [loading, setLoading] = useState(false);
   const [fehler, setFehler] = useState('');
 
@@ -22,34 +31,33 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.vorname || !form.nachname || !form.email) {
-      setFehler('Bitte alle Felder ausfüllen.');
+    if (!form.username) {
+      setFehler('Bitte Benutzername eingeben.');
       return;
     }
     setLoading(true);
     setFehler('');
     try {
-      // Mock-IdP: Token für die gewählte Rolle abrufen
-      const res = await client.post('/api/mock-auth/token', { rolle });
-      const token = res.data.access_token;
+      const res = await client.post('/api/mock-auth/token', {
+        username: form.username,
+      });
+      const token = res.data.token;
+      const payload = JSON.parse(atob(token.split('.')[1]));
 
-      const userData = {
-        vorname: form.vorname,
-        nachname: form.nachname,
-        email: form.email,
-        rolle,
-      };
+      login({
+        vorname: payload.given_name,
+        nachname: payload.family_name,
+        email: payload.email,
+        rolle: payload.role,
+      }, token);
 
-      login(userData, token);
-
-      // Kurzes Delay damit localStorage gesetzt ist bevor navigiert wird
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      if (rolle === 'dozent') navigate('/dozent');
-      else if (rolle === 'verwaltung') navigate('/verwaltung');
+      if (payload.role === 'dozent') navigate('/dozent');
+      else if (payload.role === 'verwaltung') navigate('/verwaltung');
       else navigate('/');
     } catch {
-      setFehler('Anmeldung fehlgeschlagen. Bitte versuche es erneut.');
+      setFehler('Anmeldung fehlgeschlagen. Benutzername prüfen.');
     } finally {
       setLoading(false);
     }
@@ -65,7 +73,6 @@ export default function Login() {
       padding: '24px',
     }}>
       <div style={{ width: '100%', maxWidth: '400px' }}>
-        {/* Zurück-Link */}
         <button
           className="btn btn-ghost btn-sm"
           onClick={() => navigate('/')}
@@ -75,7 +82,6 @@ export default function Login() {
         </button>
 
         <div className="card">
-          {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
             <div style={{
               width: '48px', height: '48px',
@@ -94,31 +100,24 @@ export default function Login() {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="label">Vorname</label>
+              <label className="label">Benutzername</label>
               <input
                 className="input"
-                placeholder="z.B. Max"
-                value={form.vorname}
-                onChange={(e) => setForm({ ...form, vorname: e.target.value })}
+                placeholder="z.B. dozent-001"
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                autoComplete="username"
               />
             </div>
             <div className="form-group">
-              <label className="label">Nachname</label>
+              <label className="label">Passwort</label>
               <input
                 className="input"
-                placeholder="z.B. Mustermann"
-                value={form.nachname}
-                onChange={(e) => setForm({ ...form, nachname: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label className="label">E-Mail</label>
-              <input
-                className="input"
-                type="email"
-                placeholder="z.B. m.mustermann@dhge.de"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                type="password"
+                placeholder="••••••••"
+                value={form.passwort}
+                onChange={(e) => setForm({ ...form, passwort: e.target.value })}
+                autoComplete="current-password"
               />
             </div>
 
@@ -142,7 +141,7 @@ export default function Login() {
           </form>
 
           <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', marginTop: '16px' }}>
-            Pilotmodus — beliebige Daten verwenden
+            Pilotmodus — Benutzername wird automatisch vorausgefüllt
           </p>
         </div>
       </div>
