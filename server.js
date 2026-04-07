@@ -9,11 +9,15 @@ const einheitenRoutes = require('./routes/einheiten');
 const checkinRoutes = require('./routes/checkin');
 const anwesenheitRoutes = require('./routes/anwesenheit');
 const kalenderRoutes = require('./routes/kalender');
- 
+const mockIdpRoutes = require('./services/mock-idp');
+
 const app = express();
 app.use(helmet());
 app.use(cors({ origin: process.env.FRONTEND_URL }));
 app.use(express.json());
+
+// Mock-IdP (ohne Auth-Middleware - ist der Login-Endpunkt selbst)
+app.use('/api/mock-auth', mockIdpRoutes);
  
 // Geschützte API-Routen
 app.use('/api/einheiten', authMiddleware, einheitenRoutes);
