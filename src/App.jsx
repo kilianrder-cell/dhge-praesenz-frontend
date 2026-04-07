@@ -1,13 +1,12 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, createContext, useContext } from 'react';
 import RollenAuswahl from './pages/RollenAuswahl';
 import Login from './pages/Login';
 import DozentDashboard from './pages/DozentDashboard';
 import StudierendView from './pages/StudierendView';
 import VerwaltungDashboard from './pages/VerwaltungDashboard';
 
-// Globaler Auth-Kontext — wird später mit echtem OIDC-Flow befüllt
 export const AuthContext = createContext(null);
 
 export function useAuth() {
@@ -16,16 +15,24 @@ export function useAuth() {
 
 function PrivateRoute({ children, rolle }) {
   const { user } = useAuth();
-  if (!user) return <Navigate to="/" replace />;
-  if (rolle && user.rolle !== rolle) return <Navigate to="/" replace />;
+
+  // Fallback auf localStorage — verhindert Flackern beim ersten Render
+  const gespeicherterNutzer = localStorage.getItem('user');
+  const token = localStorage.getItem('token');
+  const aktuellerNutzer = user || (gespeicherterNutzer && token ? JSON.parse(gespeicherterNutzer) : null);
+
+  if (!aktuellerNutzer) return <Navigate to="/" replace />;
+  if (rolle && aktuellerNutzer.rolle !== rolle) return <Navigate to="/" replace />;
   return children;
 }
 
 export default function App() {
   const [user, setUser] = useState(() => {
-    // Session aus localStorage wiederherstellen
     const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
+    const token = localStorage.getItem('token');
+    // Nur wiederherstellen wenn beides vorhanden ist
+    if (saved && token) return JSON.parse(saved);
+    return null;
   });
 
   const login = (userData, token) => {
