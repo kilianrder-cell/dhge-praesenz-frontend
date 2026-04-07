@@ -1,37 +1,23 @@
 // src/components/QRCodeAnzeige.jsx
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import client from '../api/client';
+
+function getToken() {
+  // Wechselt alle 30 Sekunden — basiert auf aktueller Zeit
+  return Math.floor(Date.now() / 30000);
+}
 
 export default function QRCodeAnzeige({ einheitId, onClose }) {
-  const [qrPayload, setQrPayload] = useState(null);
-  const [countdown, setCountdown] = useState(30);
-  const [fehler, setFehler] = useState('');
+  const [countdown, setCountdown] = useState(30 - (Math.floor(Date.now() / 1000) % 30));
+  const [token, setToken] = useState(getToken());
 
-  // QR-Code-URL für Studierende — enthält die einheitId
-  const checkinUrl = `${window.location.origin}/checkin/${einheitId}`;
+  const checkinUrl = `${window.location.origin}/checkin/${einheitId}?t=${token}`;
 
-  const ladeQR = async () => {
-    try {
-      const res = await client.get(`/api/einheiten/${einheitId}/qr`);
-      setQrPayload(res.data.qrPayload);
-      setCountdown(30);
-    } catch {
-      setFehler('QR-Code konnte nicht geladen werden.');
-    }
-  };
-
-  // Alle 30 Sekunden neuen QR-Code laden (rotierendes Zeitfenster)
-  useEffect(() => {
-    ladeQR();
-    const interval = setInterval(ladeQR, 30000);
-    return () => clearInterval(interval);
-  }, [einheitId]);
-
-  // Countdown-Timer
   useEffect(() => {
     const timer = setInterval(() => {
-      setCountdown((c) => (c > 0 ? c - 1 : 30));
+      const sek = Math.floor(Date.now() / 1000) % 30;
+      setCountdown(30 - sek);
+      setToken(getToken());
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -49,48 +35,30 @@ export default function QRCodeAnzeige({ einheitId, onClose }) {
           <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
         </div>
 
-        {fehler ? (
-          <div style={{ color: 'var(--danger)', padding: '24px' }}>{fehler}</div>
-        ) : qrPayload ? (
-          <>
-            <div style={{
-              background: 'white',
-              padding: '20px',
-              borderRadius: 'var(--radius-md)',
-              display: 'inline-block',
-              border: '1px solid var(--border)',
-            }}>
-              {/* QR-Code verlinkt direkt auf die Check-in-Seite */}
-              <QRCodeSVG value={checkinUrl} size={220} level="M" />
-            </div>
+        <div style={{
+          background: 'white', padding: '20px',
+          borderRadius: '12px', display: 'inline-block',
+          border: '1px solid #e5e7eb',
+        }}>
+          <QRCodeSVG value={checkinUrl} size={220} level="M" />
+        </div>
 
-            {/* Countdown */}
-            <div style={{ marginTop: '16px' }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                fontSize: '13px', color: 'var(--text-secondary)',
-              }}>
-                <div style={{
-                  width: '32px', height: '32px',
-                  background: countdown <= 5 ? '#fef2f2' : 'var(--green-light)',
-                  borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 700, fontSize: '14px',
-                  color: countdown <= 5 ? 'var(--danger)' : 'var(--green-primary)',
-                }}>
-                  {countdown}
-                </div>
-                Sekunden bis zur Erneuerung
-              </div>
-            </div>
+        <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', color: '#6b7280' }}>
+          <div style={{
+            width: '32px', height: '32px', borderRadius: '50%',
+            background: countdown <= 5 ? '#fef2f2' : '#f0fdf4',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 700, fontSize: '14px',
+            color: countdown <= 5 ? '#dc2626' : '#006633',
+          }}>
+            {countdown}
+          </div>
+          Sekunden bis zur Erneuerung
+        </div>
 
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px' }}>
-              Zeige diesen Code im Beamer — Studierende scannen ihn mit der Kamera
-            </p>
-          </>
-        ) : (
-          <div style={{ padding: '40px', color: 'var(--text-muted)' }}>Lädt...</div>
-        )}
+        <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '12px' }}>
+          Zeige diesen Code im Beamer — Studierende scannen ihn mit der Kamera
+        </p>
       </div>
     </div>
   );
