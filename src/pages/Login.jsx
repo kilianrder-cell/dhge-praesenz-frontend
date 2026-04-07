@@ -94,7 +94,7 @@ export default function Login() {
               <label className="label">Vorname</label>
               <input
                 className="input"
-                placeholder="z.B. Anna"
+                placeholder="z.B. Max"
                 value={form.vorname}
                 onChange={(e) => setForm({ ...form, vorname: e.target.value })}
               />
@@ -103,7 +103,7 @@ export default function Login() {
               <label className="label">Nachname</label>
               <input
                 className="input"
-                placeholder="z.B. Müller"
+                placeholder="z.B. Mustermann"
                 value={form.nachname}
                 onChange={(e) => setForm({ ...form, nachname: e.target.value })}
               />
@@ -113,7 +113,7 @@ export default function Login() {
               <input
                 className="input"
                 type="email"
-                placeholder="z.B. a.mueller@dhge.de"
+                placeholder="z.B. m.mustermann@dhge.de"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
