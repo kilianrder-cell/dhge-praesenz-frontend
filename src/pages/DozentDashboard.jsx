@@ -5,6 +5,7 @@ import QRCodeAnzeige from '../components/QRCodeAnzeige';
 import TeilnehmerListe from '../components/TeilnehmerListe';
 import client from '../api/client';
 
+
 const navItems = [
   { label: 'Meine Sitzungen', path: '/dozent', icon: '📋' },
 ];
@@ -20,6 +21,7 @@ export default function DozentDashboard() {
   const [icsStatus, setIcsStatus] = useState('');
 
   const laden = async () => {
+    console.log('Token im localStorage:', localStorage.getItem('token'));
     try {
       const res = await client.get('/api/einheiten');
       setEinheiten(res.data);

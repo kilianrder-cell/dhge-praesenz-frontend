@@ -42,6 +42,9 @@ export default function Login() {
 
       login(userData, token);
 
+      // Kurzes Delay damit localStorage gesetzt ist bevor navigiert wird
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       if (rolle === 'dozent') navigate('/dozent');
       else if (rolle === 'verwaltung') navigate('/verwaltung');
       else navigate('/');
