@@ -13,16 +13,11 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
-function PrivateRoute({ children, rolle }) {
-  const { user } = useAuth();
-
-  // Fallback auf localStorage — verhindert Flackern beim ersten Render
-  const gespeicherterNutzer = localStorage.getItem('user');
+function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
-  const aktuellerNutzer = user || (gespeicherterNutzer && token ? JSON.parse(gespeicherterNutzer) : null);
-
-  if (!aktuellerNutzer) return <Navigate to="/" replace />;
-  if (rolle && aktuellerNutzer.rolle !== rolle) return <Navigate to="/" replace />;
+  const gespeicherterNutzer = localStorage.getItem('user');
+  
+  if (!token || !gespeicherterNutzer) return <Navigate to="/" replace />;
   return children;
 }
 
@@ -60,12 +55,12 @@ export default function App() {
 
           {/* Geschützte Routen */}
           <Route path="/dozent/*" element={
-            <PrivateRoute rolle="dozent">
+            <PrivateRoute>
               <DozentDashboard />
             </PrivateRoute>
           } />
           <Route path="/verwaltung/*" element={
-            <PrivateRoute rolle="verwaltung">
+            <PrivateRoute>
               <VerwaltungDashboard />
             </PrivateRoute>
           } />
