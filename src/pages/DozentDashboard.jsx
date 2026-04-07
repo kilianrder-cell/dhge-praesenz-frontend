@@ -56,7 +56,6 @@ const fmtFull = (d) => d.toLocaleDateString('de-DE', { weekday: 'short', day: '2
 const toDateStr = (d) => d.toISOString().split('T')[0];
 
 export default function DozentDashboard() {
-  const [icsUrl, setIcsUrl] = useState('');
   const [icsEvents, setIcsEvents] = useState([]);
   const [icsStatus, setIcsStatus] = useState('');
   const [woche, setWoche] = useState(new Date());
@@ -66,21 +65,19 @@ export default function DozentDashboard() {
   const today = toDateStr(new Date());
   const weekDays = getWeekDays(woche);
 
-  const icsImport = async () => {
-    if (!icsUrl.trim()) return;
-    setIcsStatus('Lädt...');
-    try {
-      // CORS-Proxy für Browser-seitigen Abruf
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(icsUrl)}`;
-      const res = await fetch(proxyUrl);
-      const text = await res.text();
-      const events = parseICS(text);
-      setIcsEvents(events);
-      setIcsStatus(`✓ ${events.length} Termine geladen`);
-    } catch {
-      setIcsStatus('✗ Laden fehlgeschlagen');
-    }
-  };
+  const handleIcsDatei = async (e) => {
+  const datei = e.target.files[0];
+  if (!datei) return;
+  setIcsStatus('Lädt...');
+  try {
+    const text = await datei.text();
+    const events = parseICS(text);
+    setIcsEvents(events);
+    setIcsStatus(`✓ ${events.length} Termine geladen`);
+  } catch {
+    setIcsStatus('✗ Laden fehlgeschlagen');
+  }
+};
 
   const eventsForDay = (dateStr) =>
     icsEvents.filter(e => e.datum === dateStr);

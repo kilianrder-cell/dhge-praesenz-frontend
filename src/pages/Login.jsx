@@ -28,7 +28,7 @@ export default function Login() {
           <span style={{ color: '#333' }}>GE</span>
         </div>
         <div style={{ fontSize: '13px', color: '#888', letterSpacing: '3px', marginTop: '2px' }}>
-          BACKSTAGE
+          ANWESENHEIT
         </div>
       </div>
 
