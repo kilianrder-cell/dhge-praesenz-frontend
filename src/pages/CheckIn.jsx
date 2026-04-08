@@ -57,21 +57,16 @@ export default function CheckIn() {
           </div>
         )}
 
-        {zeigeVideo && videoFreigegeben && (
-          <>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#1f2937', marginBottom: '16px' }}>
-              🎵 Spezieller Bonus für fleißige Scanner
-            </div>
-            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, borderRadius: '10px', overflow: 'hidden' }}>
-              <iframe
-                src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0"
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-              />
-            </div>
-          </>
-        )}
+        {zeigeVideo && !videoFreigegeben && (
+  <div
+    onClick={() => window.location.href = 'https://youtu.be/dQw4w9WgXcQ'}
+    style={{ cursor: 'pointer', background: '#f0fdf4', border: '2px dashed #86efac', borderRadius: '10px', padding: '32px' }}
+  >
+    <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎁</div>
+    <div style={{ fontWeight: 700, fontSize: '16px', color: '#15803d' }}>Tippe hier für deine Belohnung</div>
+    <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px' }}>Ein kleines Dankeschön fürs Scannen</div>
+  </div>
+)}
       </div>
     </div>
   );
