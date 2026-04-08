@@ -64,7 +64,12 @@ const fmtFull = (d) => d.toLocaleDateString('de-DE', { weekday: 'short', day: '2
 const LEER_FORM = { modul: '', kurs: 'MD23', datum: '', beginn: '', ende: '', raum: '' };
 
 export default function DozentDashboard() {
-  const [icsEvents, setIcsEvents] = useState([]);
+  const [icsEvents, setIcsEvents] = useState(() => {
+  try {
+    const gespeichert = localStorage.getItem('icsEvents');
+    return gespeichert ? JSON.parse(gespeichert) : [];
+  } catch { return []; }
+});
   const [icsStatus, setIcsStatus] = useState('');
   const [woche, setWoche] = useState(new Date());
   const [sitzungen, setSitzungen] = useState([]);
@@ -83,6 +88,7 @@ export default function DozentDashboard() {
       const text = await datei.text();
       const events = parseICS(text);
       setIcsEvents(events);
+      localStorage.setItem('icsEvents', JSON.stringify(events));
       setIcsStatus(`✓ ${events.length} Termine geladen`);
     } catch {
       setIcsStatus('✗ Laden fehlgeschlagen');
