@@ -36,6 +36,9 @@ function parseICS(text) {
   return events;
 }
 
+const sortiereNachZeit = (events) =>
+  [...events].sort((a, b) => a.beginn.localeCompare(b.beginn));
+
 function getWeekDays(baseDate) {
   const d = new Date(baseDate);
   const day = d.getDay() || 7;
@@ -116,7 +119,7 @@ export default function DozentDashboard() {
     if (qrSitzung === id) setQrSitzung(null);
   };
 
-  const heuteEvents = eventsForDay(today).filter(ev => !sitzungen.find(s => s.icsId === ev.id));
+  const heuteEvents = sortiereNachZeit(eventsForDay(today)).filter(ev => !sitzungen.find(s => s.icsId === ev.id));
 
   return (
     <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: 'system-ui, sans-serif' }}>
@@ -198,7 +201,7 @@ export default function DozentDashboard() {
           <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
             {weekDays.map(day => {
               const ds = toDateStr(day);
-              const events = eventsForDay(ds);
+              const events = sortiereNachZeit(eventsForDay(ds));
               const isToday = ds === today;
               return (
                 <div key={ds} style={{ marginBottom: '2px' }}>
@@ -272,7 +275,7 @@ export default function DozentDashboard() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {sitzungen.map(s => (
+              {[...sitzungen].sort((a, b) => a.beginn.localeCompare(b.beginn)).map(s => (
                 <div key={s.id} style={{ background: 'white', borderRadius: '10px', padding: '20px', border: '1px solid #e5e7eb', borderLeft: `4px solid ${s.status === 'aktiv' ? '#006633' : s.status === 'beendet' ? '#9ca3af' : '#fbbf24'}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                     <div>

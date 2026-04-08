@@ -1,111 +1,209 @@
 // src/pages/VerwaltungDashboard.jsx
-import { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
-import TeilnehmerListe from '../components/TeilnehmerListe';
-import client from '../api/client';
+import { useState } from 'react';
 
-const navItems = [
-  { label: 'Übersicht', path: '/verwaltung', icon: '📊' },
+// ── Demo-Daten ──────────────────────────────────────────────
+const KURSE = ['MD', 'DM', 'HE', 'HM', 'MI', 'TO', 'DI', 'TV'];
+const JAHRGAENGE = ['23', '24', '25'];
+
+const DEMO_TEILNEHMER = [
+  { name: 'Max Mustermann', matrikelnr: '100123', status: 'anwesend' },
+  { name: 'Laura Fischer', matrikelnr: '100124', status: 'anwesend' },
+  { name: 'Jonas Weber', matrikelnr: '100125', status: 'anwesend' },
+  { name: 'Anna Schmidt', matrikelnr: '100126', status: 'entschuldigt' },
+  { name: 'Tim Bauer', matrikelnr: '100127', status: 'fehlend' },
+  { name: 'Sarah Müller', matrikelnr: '100128', status: 'anwesend' },
+  { name: 'Felix Hoffmann', matrikelnr: '100129', status: 'anwesend' },
+  { name: 'Jana Koch', matrikelnr: '100130', status: 'fehlend' },
 ];
 
+function genLVs(kursKuerzel, jahrgang) {
+  const kurs = `${kursKuerzel}${jahrgang}`;
+  return [
+    { id: `${kurs}-1`, modul: 'Software-Engineering', datum: '08.04.2026', beginn: '09:45', ende: '11:15', raum: '206', dozent: 'Prof. Anschütz', status: 'beendet' },
+    { id: `${kurs}-2`, modul: 'Praxis der Digitalisierung', datum: '08.04.2026', beginn: '11:30', ende: '13:00', raum: '206', dozent: 'Prof. Straubel', status: 'aktiv' },
+    { id: `${kurs}-3`, modul: 'Komplexseminar Digitalisierung', datum: '09.04.2026', beginn: '09:45', ende: '11:15', raum: '105', dozent: 'Prof. Straubel', status: 'geplant' },
+    { id: `${kurs}-4`, modul: 'Controlling & Unternehmensführung', datum: '15.04.2026', beginn: '11:30', ende: '13:00', raum: 'T105-ONL', dozent: 'Prof. Cravotta', status: 'geplant' },
+    { id: `${kurs}-5`, modul: 'Anwendungsbezogene Theorie', datum: '24.04.2026', beginn: '10:00', ende: '10:30', raum: '105', dozent: 'Prof. Hoppe', status: 'geplant' },
+  ];
+}
+
+// ── Komponente ──────────────────────────────────────────────
 export default function VerwaltungDashboard() {
-  const [einheiten, setEinheiten] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [ausgewaehlt, setAusgewaehlt] = useState(null);
+  const [offen, setOffen] = useState({});
+  const [gewaehlterKurs, setGewaehlterKurs] = useState('MD23');
+  const [suche, setSuche] = useState('');
+  const [aufgeklappeLV, setAufgeklappeLV] = useState(null);
 
-  useEffect(() => {
-    client.get('/api/einheiten')
-      .then((res) => setEinheiten(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const toggleKurs = (k) => setOffen(prev => ({ ...prev, [k]: !prev[k] }));
 
-  const statusBadge = (status) => ({
-    geplant: <span className="badge badge-gray">Geplant</span>,
-    aktiv: <span className="badge badge-green">● Aktiv</span>,
-    beendet: <span className="badge badge-gray">Beendet</span>,
-  }[status]);
+  const lvs = genLVs(
+    gewaehlterKurs.slice(0, -2),
+    gewaehlterKurs.slice(-2)
+  ).filter(lv =>
+    lv.modul.toLowerCase().includes(suche.toLowerCase()) ||
+    lv.dozent.toLowerCase().includes(suche.toLowerCase())
+  );
 
-  const aktiveAnzahl = einheiten.filter((e) => e.status === 'aktiv').length;
-  const beendeteAnzahl = einheiten.filter((e) => e.status === 'beendet').length;
+  // Statistik über alle Kurse
+  const alleKurse = KURSE.flatMap(k => JAHRGAENGE.map(j => `${k}${j}`));
+  const alleLVs = alleKurse.flatMap(k => genLVs(k.slice(0, -2), k.slice(-2)));
+  const gesamt = alleLVs.length;
+  const aktiv = alleLVs.filter(l => l.status === 'aktiv').length;
+
+  const statusStyle = (s) => ({
+    padding: '2px 8px', borderRadius: '99px', fontSize: '11px', fontWeight: 600,
+    background: s === 'aktiv' ? '#dcfce7' : s === 'beendet' ? '#f3f4f6' : '#fef9c3',
+    color: s === 'aktiv' ? '#15803d' : s === 'beendet' ? '#9ca3af' : '#a16207',
+  });
 
   return (
-    <Layout navItems={navItems}>
-      <div className="page-header">
-        <h1>Anwesenheitsübersicht</h1>
-        <p>Alle Lehreinheiten und Anwesenheitsdaten im Überblick</p>
+    <div style={{ minHeight: '100vh', background: '#f3f4f6', fontFamily: 'system-ui, sans-serif' }}>
+      {/* Topbar */}
+      <div style={{ background: '#006633', color: 'white', padding: '0 24px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ fontWeight: 800, fontSize: '18px' }}>DHGE Präsenz</div>
+          <span style={{ opacity: 0.6, fontSize: '13px' }}>Verwaltungs-Ansicht</span>
+        </div>
+        <a href="/" style={{ fontSize: '13px', opacity: 0.8, color: 'white', textDecoration: 'none' }}>← Abmelden</a>
       </div>
 
-      {/* Statistik-Kacheln */}
-      <div className="grid-3" style={{ marginBottom: '24px' }}>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--green-primary)' }}>{einheiten.length}</div>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Lehreinheiten gesamt</div>
-        </div>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--success)' }}>{aktiveAnzahl}</div>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Aktive Sitzungen</div>
-        </div>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-secondary)' }}>{beendeteAnzahl}</div>
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>Abgeschlossene Sitzungen</div>
-        </div>
-      </div>
+      <div style={{ display: 'flex', height: 'calc(100vh - 56px)' }}>
 
-      {/* Tabelle */}
-      <div className="card">
-        <h2 style={{ fontWeight: 700, fontSize: '16px', marginBottom: '16px' }}>Alle Lehreinheiten</h2>
-        {loading ? (
-          <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '24px' }}>Lädt...</p>
-        ) : einheiten.length === 0 ? (
-          <div className="empty-state"><p>Noch keine Daten vorhanden.</p></div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                  {['Modul', 'Kurs', 'Datum', 'Zeit', 'Status', 'Anwesenheiten'].map((h) => (
-                    <th key={h} style={{ textAlign: 'left', padding: '8px 12px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '12px' }}>
-                      {h.toUpperCase()}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {einheiten.map((e) => (
-                  <>
-                    <tr
-                      key={e.id}
-                      style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                      onClick={() => setAusgewaehlt(ausgewaehlt === e.id ? null : e.id)}
-                    >
-                      <td style={{ padding: '12px', fontWeight: 500 }}>{e.modul}</td>
-                      <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>{e.kurs}</td>
-                      <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>
-                        {new Date(e.datum).toLocaleDateString('de-DE')}
-                      </td>
-                      <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>{e.beginn}–{e.ende}</td>
-                      <td style={{ padding: '12px' }}>{statusBadge(e.status)}</td>
-                      <td style={{ padding: '12px' }}>
-                        <span style={{ color: 'var(--green-primary)', fontWeight: 600 }}>
-                          {ausgewaehlt === e.id ? '▲' : '▾'} Details
-                        </span>
-                      </td>
-                    </tr>
-                    {ausgewaehlt === e.id && (
-                      <tr key={`detail-${e.id}`}>
-                        <td colSpan={6} style={{ background: 'var(--bg)', padding: '16px 24px' }}>
-                          <TeilnehmerListe einheitId={e.id} live={e.status === 'aktiv'} />
-                        </td>
-                      </tr>
-                    )}
-                  </>
-                ))}
-              </tbody>
-            </table>
+        {/* ── Sidebar: Kursbaum ── */}
+        <div style={{ width: '220px', minWidth: '220px', background: 'white', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', fontSize: '12px', fontWeight: 700, color: '#006633', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Kurse
           </div>
-        )}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+            {KURSE.map(k => (
+              <div key={k}>
+                <button
+                  onClick={() => toggleKurs(k)}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 700, color: '#1f2937' }}
+                >
+                  <span>{k}</span>
+                  <span style={{ color: '#9ca3af', fontSize: '11px' }}>{offen[k] ? '▲' : '▼'}</span>
+                </button>
+                {offen[k] && JAHRGAENGE.map(j => {
+                  const kursName = `${k}${j}`;
+                  const aktiv = kursName === gewaehlterKurs;
+                  return (
+                    <button
+                      key={kursName}
+                      onClick={() => setGewaehlterKurs(kursName)}
+                      style={{
+                        width: '100%', padding: '6px 16px 6px 28px',
+                        background: aktiv ? '#f0fdf4' : 'none',
+                        border: 'none', cursor: 'pointer',
+                        fontSize: '13px', color: aktiv ? '#006633' : '#6b7280',
+                        fontWeight: aktiv ? 700 : 400,
+                        textAlign: 'left',
+                        borderLeft: aktiv ? '3px solid #006633' : '3px solid transparent',
+                      }}
+                    >
+                      {kursName}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Hauptbereich ── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+
+          {/* Statistik-Kacheln */}
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+            {[
+              { label: 'Lehreinheiten gesamt', wert: gesamt, farbe: '#006633', bg: '#f0fdf4' },
+              { label: 'Aktive Sitzungen', wert: aktiv, farbe: '#dc2626', bg: '#fef2f2' },
+            ].map(({ label, wert, farbe, bg }) => (
+              <div key={label} style={{ flex: 1, background: 'white', borderRadius: '10px', padding: '20px', border: '1px solid #e5e7eb' }}>
+                <div style={{ fontSize: '28px', fontWeight: 800, color: farbe }}>{wert}</div>
+                <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>{label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Lehreinheiten */}
+          <div style={{ background: 'white', borderRadius: '10px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>Lehreinheiten — {gewaehlterKurs}</h2>
+              <input
+                placeholder="Suche nach Modul oder Dozent..."
+                value={suche}
+                onChange={e => setSuche(e.target.value)}
+                style={{ padding: '6px 12px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '13px', width: '240px' }}
+              />
+            </div>
+
+            {lvs.length === 0 ? (
+              <div style={{ padding: '48px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>Keine Lehreinheiten gefunden.</div>
+            ) : (
+              lvs.map(lv => (
+                <div key={lv.id}>
+                  <div
+                    onClick={() => setAufgeklappeLV(aufgeklappeLV === lv.id ? null : lv.id)}
+                    style={{ padding: '14px 20px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: aufgeklappeLV === lv.id ? '#f9fafb' : 'white' }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                        <span style={{ fontWeight: 600, fontSize: '14px' }}>{lv.modul}</span>
+                        <span style={statusStyle(lv.status)}>
+                          {lv.status === 'aktiv' ? '● Aktiv' : lv.status === 'beendet' ? 'Beendet' : 'Geplant'}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                        {lv.datum} · {lv.beginn}–{lv.ende} · {lv.raum} · {lv.dozent}
+                      </div>
+                    </div>
+                    <span style={{ color: '#9ca3af', fontSize: '12px' }}>{aufgeklappeLV === lv.id ? '▲' : '▼'}</span>
+                  </div>
+
+                  {/* Demo-Teilnehmertabelle */}
+                  {aufgeklappeLV === lv.id && (
+                    <div style={{ padding: '16px 20px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#6b7280', marginBottom: '10px' }}>
+                        ANWESENHEITSLISTE — {gewaehlterKurs} ({DEMO_TEILNEHMER.filter(t => t.status === 'anwesend').length}/{DEMO_TEILNEHMER.length} anwesend)
+                      </div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                        <thead>
+                          <tr style={{ background: '#f3f4f6' }}>
+                            {['Name', 'Matrikelnr.', 'Status', 'Eingecheckt'].map(h => (
+                              <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: '11px', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {DEMO_TEILNEHMER.map((t, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                              <td style={{ padding: '8px 12px', fontWeight: 500 }}>{t.name}</td>
+                              <td style={{ padding: '8px 12px', color: '#6b7280' }}>{t.matrikelnr}</td>
+                              <td style={{ padding: '8px 12px' }}>
+                                <span style={{
+                                  padding: '2px 8px', borderRadius: '99px', fontSize: '11px', fontWeight: 600,
+                                  background: t.status === 'anwesend' ? '#dcfce7' : t.status === 'entschuldigt' ? '#fef9c3' : '#fee2e2',
+                                  color: t.status === 'anwesend' ? '#15803d' : t.status === 'entschuldigt' ? '#a16207' : '#dc2626',
+                                }}>
+                                  {t.status === 'anwesend' ? '✓ Anwesend' : t.status === 'entschuldigt' ? '~ Entschuldigt' : '✗ Fehlend'}
+                                </span>
+                              </td>
+                              <td style={{ padding: '8px 12px', color: '#6b7280' }}>
+                                {t.status === 'anwesend' ? `${lv.beginn} Uhr` : '—'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
-    </Layout>
+    </div>
   );
 }
