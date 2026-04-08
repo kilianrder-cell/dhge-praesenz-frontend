@@ -46,15 +46,15 @@ export default function CheckIn() {
         )}
 
         {zeigeVideo && (
-          <div
-            onClick={() => window.location.href = 'https://youtu.be/dQw4w9WgXcQ'}
-            style={{ cursor: 'pointer', background: '#f0fdf4', border: '2px dashed #86efac', borderRadius: '10px', padding: '32px' }}
-          >
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎁</div>
-            <div style={{ fontWeight: 700, fontSize: '16px', color: '#15803d' }}>Tippe hier für deine Belohnung</div>
-            <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px' }}>Ein kleines Dankeschön fürs Scannen</div>
-          </div>
-        )}
+  <div
+    onClick={() => window.location.href = 'https://archive.org/details/youtube-dQw4w9WgXcQ'}
+    style={{ cursor: 'pointer', background: '#f0fdf4', border: '2px dashed #86efac', borderRadius: '10px', padding: '32px' }}
+  >
+    <div style={{ fontSize: '48px', marginBottom: '12px' }}>🎁</div>
+    <div style={{ fontWeight: 700, fontSize: '16px', color: '#15803d' }}>Tippe hier für deine Belohnung</div>
+    <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '8px' }}>Ein kleines Dankeschön fürs Scannen</div>
+  </div>
+)}
 
       </div>
     </div>
