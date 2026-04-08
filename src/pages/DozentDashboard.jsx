@@ -295,11 +295,17 @@ export default function DozentDashboard() {
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       {s.status === 'geplant' && (
+                      <>
                         <button onClick={() => starten(s.id)}
                           style={{ padding: '8px 16px', background: '#006633', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '13px' }}>
-                          ▶ Starten
+                            ▶ Starten
                         </button>
-                      )}
+                        <button onClick={() => setSitzungen(prev => prev.filter(x => x.id !== s.id))}
+                          style={{ padding: '8px 14px', background: '#f9fafb', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '13px' }}>
+                          ✕ Entfernen
+                        </button>
+                        </>
+                        )}
                       {s.status === 'aktiv' && (
                         <>
                           <button onClick={() => setQrSitzung(s.id)}
@@ -324,6 +330,12 @@ export default function DozentDashboard() {
                       ))}
                     </div>
                   )}
+                  {s.status === 'beendet' && (
+                    <button onClick={() => setSitzungen(prev => prev.map(x => x.id === s.id ? { ...x, status: 'geplant' } : x))}
+                    style={{ padding: '8px 14px', background: '#f9fafb', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '13px' }}>
+                    ↺ Zurücksetzen
+                    </button>
+                    )}
                 </div>
               ))}
             </div>
